@@ -1,0 +1,25 @@
+# Credenciais e variáveis de ambiente
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Dados brutos (CSV pode ser pesado e já está no Kaggle)
+data/
+*.csv
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
