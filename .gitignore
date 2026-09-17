@@ -26,3 +26,15 @@ data/
 # Sistema operacional
 .DS_Store
 Thumbs.dblogs/
+
+# Airflow
+logs/
+
+# Environment / secrets
+.env
+config/.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/

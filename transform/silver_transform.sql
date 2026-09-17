@@ -1,3 +1,8 @@
+DROP TABLE IF EXISTS bridge_show_country;
+DROP TABLE IF EXISTS bridge_show_director;
+DROP TABLE IF EXISTS bridge_show_actor;
+DROP TABLE IF EXISTS bridge_show_genre;
+
 DROP TABLE IF EXISTS silver_netflix;
 
 CREATE TABLE silver_netflix AS
