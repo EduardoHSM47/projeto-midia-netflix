@@ -6,31 +6,33 @@ import os
 # Carrega as credenciais do .env
 load_dotenv(dotenv_path="config/.env")
 
-# Configurações de conexão
-conn = psycopg2.connect(
-    host=os.getenv("DB_HOST"),
-    port=os.getenv("DB_PORT"),
-    dbname=os.getenv("DB_NAME"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD")
-)
 
-print("Conectado ao Postgres com sucesso")
+def extract_bronze():
 
-# Lê o csv bruto sem transformar nada
-df = pd.read_csv("data/netflix_titles.csv")
+    # Configurações de conexão
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT"),
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
+    )
 
-print(f"CSV carregado: {len(df)} linhas, {len(df.columns)} colunas")
+    print("Conectado ao Postgres com sucesso")
 
-# Grava no postgres como Camada Bronze (Exatamente como veio)
+    # Lê o CSV bruto sem transformar nada
+    df = pd.read_csv("data/netflix_titles.csv")
 
-df.to_sql(
-    name="bronze_netflix",
-    con=f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
-    if_exists="replace",
-    index=False
-)
+    print(f"CSV carregado: {len(df)} linhas, {len(df.columns)} colunas")
 
-print("Bronze carregado no Postgres com sucesso!")
+    # Grava no Postgres como Camada Bronze
+    df.to_sql(
+        name="bronze_netflix",
+        con=f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
+        if_exists="replace",
+        index=False
+    )
 
-conn.close()
+    print("Bronze carregado no Postgres com sucesso!")
+
+    conn.close()

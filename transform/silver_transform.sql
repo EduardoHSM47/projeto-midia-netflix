@@ -3,6 +3,10 @@ DROP TABLE IF EXISTS silver_netflix;
 CREATE TABLE silver_netflix AS
 SELECT * FROM bronze_netflix;
 
+ALTER TABLE silver_netflix
+ADD CONSTRAINT pk_silver_netflix
+PRIMARY KEY (show_id);
+
 -- Executa todas as transformações
 
 -- ===========================================
