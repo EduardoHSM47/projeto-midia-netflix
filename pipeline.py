@@ -41,27 +41,31 @@ def execute_sql_file(filepath):
 
 
 def run_pipeline():
-    print("🚀 Iniciando pipeline Bronze → Silver → Gold")
+    print(" Iniciando pipeline Bronze → Silver → Gold → Quality Checks")
     print("=" * 50)
 
     # 1. Bronze
-    print("\n📥 Etapa 1: Extração Bronze")
+    print(" Etapa 1: Extração Bronze")
     extract_bronze()
 
     # 2. Silver
-    print("\n🔧 Etapa 2: Transformação Silver")
+    print(" Etapa 2: Transformação Silver")
     execute_sql_file("transform/silver_transform.sql")
 
     # 3. Dimensões Silver
-    print("\n📐 Etapa 3: Criando Dimensões")
+    print(" Etapa 3: Criando Dimensões")
     execute_sql_file("transform/silver_dimensions.sql")
 
     # 4. Gold
-    print("\n🥇 Etapa 4: Agregações Gold")
+    print(" Etapa 4: Agregações Gold")
     execute_sql_file("transform/gold_aggregations.sql")
 
+    # 5. Quality Checks
+    print(" Etapa 5: Data Quality Checks")
+    execute_sql_file("transform/quality_checks.sql")
+
     print("\n" + "=" * 50)
-    print("✅ Pipeline concluído com sucesso!")
+    print(" Pipeline concluído com sucesso!")
 
 
 if __name__ == "__main__":

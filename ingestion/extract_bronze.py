@@ -1,38 +1,39 @@
-import pandas as pd
-import psycopg2
-from dotenv import load_dotenv
 import os
 
-# Carrega as credenciais do .env
+import pandas as pd
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, URL
+
 load_dotenv(dotenv_path="config/.env")
 
 
 def extract_bronze():
-
-    # Configurações de conexão
-    conn = psycopg2.connect(
+    db_url = URL.create(
+        drivername="postgresql+psycopg2",
+        username=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
         host=os.getenv("DB_HOST"),
-        port=os.getenv("DB_PORT"),
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD")
+        port=int(os.getenv("DB_PORT")),
+        database=os.getenv("DB_NAME"),
     )
 
-    print("Conectado ao Postgres com sucesso")
+    engine = create_engine(db_url)
 
-    # Lê o CSV bruto sem transformar nada
-    df = pd.read_csv("data/netflix_titles.csv")
+    try:
+        df = pd.read_csv("data/netflix_titles.csv")
+        print(f"CSV carregado: {len(df)} linhas, {len(df.columns)} colunas")
 
-    print(f"CSV carregado: {len(df)} linhas, {len(df.columns)} colunas")
+        with engine.begin() as conn:
+            print("Conectado ao Postgres com sucesso")
 
-    # Grava no Postgres como Camada Bronze
-    df.to_sql(
-        name="bronze_netflix",
-        con=f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}",
-        if_exists="replace",
-        index=False
-    )
+            df.to_sql(
+                name="bronze_netflix",
+                con=conn,
+                if_exists="replace",
+                index=False
+            )
 
-    print("Bronze carregado no Postgres com sucesso!")
+        print("Bronze carregado no Postgres com sucesso!")
 
-    conn.close()
+    finally:
+        engine.dispose()

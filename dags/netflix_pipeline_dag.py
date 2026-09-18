@@ -1,7 +1,9 @@
 from datetime import datetime
 
-import psycopg2
 import pandas as pd
+import psycopg2
+from sqlalchemy import create_engine, URL
+
 from airflow.sdk import DAG, task
 from airflow.hooks.base import BaseHook
 
@@ -17,6 +19,7 @@ def get_db_config():
         "password": connection.password,
     }
 
+
 def execute_sql_file(filepath):
     with open(filepath, "r", encoding="utf-8") as file:
         sql = file.read()
@@ -27,9 +30,11 @@ def execute_sql_file(filepath):
     try:
         cursor.execute(sql)
         conn.commit()
+
     except Exception:
         conn.rollback()
         raise
+
     finally:
         cursor.close()
         conn.close()
@@ -47,21 +52,32 @@ with DAG(
     def extract_bronze():
         db = get_db_config()
 
-        df = pd.read_csv("/opt/airflow/data/netflix_titles.csv")
-
-        connection_string = (
-            f"postgresql://{db['user']}:{db['password']}"
-            f"@{db['host']}:{db['port']}/{db['dbname']}"
+        db_url = URL.create(
+            drivername="postgresql+psycopg2",
+            username=db["user"],
+            password=db["password"],
+            host=db["host"],
+            port=db["port"],
+            database=db["dbname"],
         )
 
-        df.to_sql(
-            name="bronze_netflix",
-            con=connection_string,
-            if_exists="replace",
-            index=False,
-        )
+        engine = create_engine(db_url)
 
-        print(f"Bronze carregada com sucesso: {len(df)} registros.")
+        try:
+            df = pd.read_csv("/opt/airflow/data/netflix_titles.csv")
+
+            with engine.begin() as conn:
+                df.to_sql(
+                    name="bronze_netflix",
+                    con=conn,
+                    if_exists="replace",
+                    index=False,
+                )
+
+            print(f"Bronze carregada com sucesso: {len(df)} registros.")
+
+        finally:
+            engine.dispose()
 
     @task
     def transform_silver():
@@ -88,6 +104,5 @@ with DAG(
     dimensions = create_dimensions()
     gold = aggregate_gold()
     quality = quality_checks()
-
 
     bronze >> silver >> dimensions >> gold >> quality
